@@ -1,52 +1,60 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolPixel - AI Object Cut</title>
+<title>ToolPixel - Professional Image Editor</title>
 <style>
-body{background:#111;color:#fff;font-family:Arial, sans-serif;text-align:center;padding:10px}
-h1{color:#00ff88}
-canvas{max-width:90%;max-height:400px;margin:15px auto;display:block;border-radius:12px;background:repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;border: 2px dashed #444;}
-button{background:#00ff88;color:#000;border:none;padding:12px 16px;margin:6px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;transition:0.2s}
-button:hover{opacity:0.8}
-#status{color:yellow;font-weight:bold;font-size:16px;margin:10px}
-#download{background:#0088ff;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:10px;font-weight:bold}
+body{background:#121212;color:#fff;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;text-align:center;padding:20px}
+h1{color:#00ff88;margin-bottom:5px}
+.container{max-width:600px;margin:0 auto;background:#1e1e1e;padding:20px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.5)}
+canvas{max-width:100%;max-height:400px;margin:15px auto;display:block;border-radius:10px;background:repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 0 0 / 20px 20px;border: 2px dashed #444;}
+input[type="file"]{margin:15px 0;padding:10px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer}
+button{background:#00ff88;color:#000;border:none;padding:12px 18px;margin:6px;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;transition:0.2s}
+button:hover{background:#00cc6a}
+#status{color:#ffeb3b;font-weight:bold;font-size:15px;margin:10px}
+#download{background:#0088ff;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:15px;font-weight:bold}
+#download:hover{background:#0066cc}
 #log{color:#aaa;font-size:12px;margin-bottom:10px}
 </style>
 </head>
 <body>
 
-<h1>ToolPixel - AI Object Only</h1>
-<p id="status">Pehle Image Upload Karo</p>
-<p id="log">Image select karte hi canvas par show ho jayegi</p>
-<input type="file" id="upload" accept="image/*"><br>
-<canvas id="canvas"></canvas><br>
+<div class="container">
+    <h1>ToolPixel</h1>
+    <p id="log">Fast & Free Online Image Editing Tools</p>
+    
+    <input type="file" id="upload" accept="image/*"><br>
+    <p id="status">Please upload an image to start</p>
+    
+    <canvas id="canvas"></canvas><br>
 
-<button id="bgBtn">1. AI Remove BG</button>
-<button onclick="bw()">2. Black & White</button>
-<button onclick="compress()">3. Compress (60%)</button>
-<button onclick="resize500()">4. Resize 500x500</button>
-<button onclick="bright()">5. Brightness +</button>
-<button onclick="negative()">6. Negative</button>
-<button onclick="rotate()">7. Rotate 90°</button>
-<br><br>
-<a id="download" download="edited-image.png">⬇️ Download Image</a>
+    <button id="bgBtn">1. AI Remove Background</button>
+    <button onclick="bw()">2. Black & White</button>
+    <button onclick="compress()">3. Compress (60%)</button>
+    <button onclick="resize500()">4. Resize 500x500</button>
+    <button onclick="bright()">5. Brightness +</button>
+    <button onclick="negative()">6. Negative</button>
+    <button onclick="rotate()">7. Rotate 90°</button>
+    <br>
+    <a id="download" download="edited-image.png" style="display:none;">⬇️ Download Image</a>
+</div>
 
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
+const downloadBtn = document.getElementById('download');
 let imgLoaded = false;
 let currentImg = new Image();
 
-// 1. Image Upload & Instant Canvas Rendering
+// Image Upload & Canvas Rendering
 document.getElementById('upload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    status.innerText = "Image Load ہو رہی ہے...";
+    status.innerText = "Loading image...";
     let reader = new FileReader();
     
     reader.onload = function(event) {
@@ -56,8 +64,8 @@ document.getElementById('upload').addEventListener('change', function(e) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(currentImg, 0, 0);
             imgLoaded = true;
-            status.innerText = "Image Ready! اب کوئی بھی ٹول استعمال کریں";
-            log.innerText = "تصویر کامیابی سے کینوس پر لوڈ ہو چکی ہے";
+            status.innerText = "Image ready! Choose a tool below.";
+            downloadBtn.style.display = "inline-block";
             updateDownloadLink();
         }
         currentImg.src = event.target.result;
@@ -65,27 +73,24 @@ document.getElementById('upload').addEventListener('change', function(e) {
     reader.readAsDataURL(file);
 });
 
-// Download Link Updater
+// Update Download Link
 function updateDownloadLink() {
     if (!imgLoaded) return;
-    document.getElementById('download').href = canvas.toDataURL("image/png");
+    downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. AI Background Remove Placeholder / API Integration option
+// AI Background Remove Notice for US Audience
 document.getElementById('bgBtn').addEventListener('click', function() {
     if (!imgLoaded) {
-        alert("پہلے تصویر اپ لوڈ کریں!");
+        alert("Please upload an image first!");
         return;
     }
-    status.innerText = "AI پروسیسنگ جاری ہے...";
-    log.innerText = "GitHub Pages پر ہیوی AI ماڈلز براؤزر کی سیکیورٹی پالیسی (COOP/COEP) کی وجہ سے بلاک ہو جاتے ہیں۔";
-    alert("نوٹ: براہِ راست براؤزر میں AI ماڈل رن کرنے کے لیے سرور یا درست CORS ہیڈرز درکار ہوتے ہیں۔ آپ چاہیں تو اس بٹن پر کوئی ایکسٹرنل API (جیسے Remove.bg API) جوڑ سکتے ہیں۔ باقی تمام فوٹو ایڈیٹنگ ٹولز بالکل ٹھیک کام کر رہے ہیں۔");
-    status.innerText = "ایڈیٹنگ ٹولز استعمال کریں";
+    alert("Note: Heavy AI background removal models require a backend server or paid API (like Remove.bg) to run smoothly on US web hosting. All other instant editing tools are fully functional!");
 });
 
-// 3. Image Editing Tools
+// Image Editing Tools
 window.bw = function() {
-    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -94,11 +99,11 @@ window.bw = function() {
     }
     ctx.putImageData(imgData, 0, 0);
     updateDownloadLink();
-    status.innerText = "Black & White اپلائی ہو گیا!";
+    status.innerText = "Black & White filter applied!";
 }
 
 window.compress = function() {
-    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
     t.width = canvas.width * 0.6;
     t.height = canvas.height * 0.6;
@@ -107,22 +112,22 @@ window.compress = function() {
     canvas.height = t.height;
     ctx.drawImage(t, 0, 0);
     updateDownloadLink();
-    status.innerText = "Compress ہو گئی!";
+    status.innerText = "Image compressed successfully!";
 }
 
 window.resize500 = function() {
-    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
     t.width = 500; t.height = 500;
     t.getContext('2d').drawImage(canvas, 0, 0, 500, 500);
     canvas.width = 500; canvas.height = 500;
     ctx.drawImage(t, 0, 0);
     updateDownloadLink();
-    status.innerText = "Resize 500x500 ہو گئی!";
+    status.innerText = "Resized to 500x500!";
 }
 
 window.bright = function() {
-    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -132,11 +137,11 @@ window.bright = function() {
     }
     ctx.putImageData(imgData, 0, 0);
     updateDownloadLink();
-    status.innerText = "Brightness بڑھ گئی!";
+    status.innerText = "Brightness increased!";
 }
 
 window.negative = function() {
-    if !imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -146,11 +151,11 @@ window.negative = function() {
     }
     ctx.putImageData(imgData, 0, 0);
     updateDownloadLink();
-    status.innerText = "Negative ایفیکٹ لگ گیا!";
+    status.innerText = "Negative effect applied!";
 }
 
 window.rotate = function() {
-    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
     t.width = canvas.height;
     t.height = canvas.width;
@@ -162,7 +167,7 @@ window.rotate = function() {
     canvas.height = t.height;
     ctx.drawImage(t, 0, 0);
     updateDownloadLink();
-    status.innerText = "Rotate ہو گئی!";
+    status.innerText = "Rotated 90°!";
 }
 </script>
 
