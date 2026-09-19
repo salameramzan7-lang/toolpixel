@@ -3,76 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolPixel</title>
+<title>ToolPixel - AI Object Cut</title>
 <style>
 body{background:#111;color:#fff;font-family:Arial;text-align:center;padding:10px}
 h1{color:#00ff88}
-canvas{max-width:95%;margin:15px auto;display:block;border-radius:12px;background-color:#fff;background-image:linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%);background-size:20px 20px;background-position:0 0, 0 10px, 10px -10px, -10px 0px;min-height:250px}
-button{background:#00ff88;color:#000;border:none;padding:12px 14px;margin:5px;border-radius:8px;font-weight:bold}
-#status{color:yellow;font-size:18px;font-weight:bold;margin:10px}
-#download{background:#0088ff;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block}
+canvas{max-width:95%;margin:15px auto;display:block;border-radius:12px;background:repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;min-height:250px}
+button{background:#00ff88;color:#000;border:none;padding:14px 16px;margin:6px;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer}
+#status{color:yellow;font-weight:bold;font-size:18px;margin:12px}
+#download{background:#0088ff;color:#fff;padding:14px 22px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:10px}
+#log{color:#aaa;font-size:12px}
 </style>
 </head>
 <body>
-<h1>ToolPixel - All 7 Working</h1>
-<p id="status">1. Pehle image upload karo</p>
+<h1>ToolPixel - AI Object Only</h1>
+<p id="status">Image Upload Karo</p>
+<p id="log">AI Model First Time 15 Sec Legi, Fir Fast</p>
 <input type="file" id="upload" accept="image/*"><br>
 <canvas id="canvas"></canvas><br>
-<button onclick="removeBG()">1. Background Remove</button>
+<button id="bgBtn">1. AI Remove - Only Object Rakho</button>
 <button onclick="bw()">2. Black & White</button>
-<button onclick="compress()">3. Compress 60%</button>
-<button onclick="resize500()">4. Resize 500x500</button>
-<button onclick="bright()">5. Bright+</button>
+<button onclick="compress()">3. Compress</button>
+<button onclick="resize500()">4. Resize 500</button>
+<button onclick="bright()">5. Bright</button>
 <button onclick="negative()">6. Negative</button>
-<button onclick="rotate()">7. Rotate 90</button>
+<button onclick="rotate()">7. Rotate</button>
 <br><br>
-<a id="download" download="toolpixel.png">⬇️ Download Result</a>
-<script>
+<a id="download" download="object-only.png">⬇️ Download Object</a>
+
+<script type="module">
+import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.esm.js";
+
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 const status=document.getElementById('status');
-let loaded=false;
-document.getElementById('upload').addEventListener('change',e=>{
- let file=e.target.files[0];
+const log=document.getElementById('log');
+const btn=document.getElementById('bgBtn');
+let file=null;
+let imgLoaded=false;
+
+document.getElementById('upload').addEventListener('change', e=>{
+ file=e.target.files[0];
  if(!file) return;
- status.innerText="Image load ho rahi hai...";
+ status.innerText="Image Loading...";
  let img=new Image();
  img.onload=()=>{
   canvas.width=img.width; canvas.height=img.height;
   ctx.drawImage(img,0,0);
-  loaded=true;
-  status.innerText="Image upload ho gayi! Ab koi bhi button dabao";
+  imgLoaded=true;
+  status.innerText="Image Ready! Ab Button Dabao - Sirf Object Bachega";
   update();
  };
  img.src=URL.createObjectURL(file);
 });
-function update(){ document.getElementById('download').href=canvas.toDataURL(); }
-function need(){ if(!loaded){ alert("Pehle image upload karo!"); return false;} return true;}
 
-function removeBG(){
- if(!need()) return;
- status.innerText="Background remove ho raha hai... 2 second...";
- setTimeout(()=>{
-  let d=ctx.getImageData(0,0,canvas.width,canvas.height);
-  let r0=d.data[0], g0=d.data[1], b0=d.data[2];
-  let removed=0;
-  for(let i=0;i<d.data.length;i+=4){
-   if(Math.abs(d.data[i]-r0)<50 && Math.abs(d.data[i+1]-g0)<50 && Math.abs(d.data[i+2]-b0)<50){
-    d.data[i+3]=0; removed++;
-   }
-  }
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.putImageData(d,0,0);
-  status.innerText="Done! Background hat gaya - Check karo (grey box dikhega)";
-  update();
- }, 100);
-}
-function bw(){ if(!need())return; let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){let g=(d.data[i]+d.data[i+1]+d.data[i+2])/3; d.data[i]=d.data[i+1]=d.data[i+2]=g;} ctx.putImageData(d,0,0); status.innerText="Black & White Done"; update();}
-function compress(){ if(!need())return; status.innerText="Compress ho raha hai..."; let t=document.createElement('canvas'); t.width=canvas.width*0.6; t.height=canvas.height*0.6; t.getContext('2d').drawImage(canvas,0,0,t.width,t.height); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); status.innerText="60% Compress Done"; update();}
-function resize500(){ if(!need())return; let t=document.createElement('canvas'); t.width=500; t.height=500; t.getContext('2d').drawImage(canvas,0,0,500,500); canvas.width=500; canvas.height=500; ctx.drawImage(t,0,0); status.innerText="Resize 500x500 Done"; update();}
-function bright(){ if(!need())return; let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]+=40; d.data[i+1]+=40; d.data[i+2]+=40;} ctx.putImageData(d,0,0); status.innerText="Bright Done"; update();}
-function negative(){ if(!need())return; let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]=255-d.data[i]; d.data[i+1]=255-d.data[i+1]; d.data[i+2]=255-d.data[i+2];} ctx.putImageData(d,0,0); status.innerText="Negative Done"; update();}
-function rotate(){ if(!need())return; let t=document.createElement('canvas'); t.width=canvas.height; t.height=canvas.width; let c=t.getContext('2d'); c.translate(t.width/2,t.height/2); c.rotate(90*Math.PI/180); c.drawImage(canvas,-canvas.width/2,-canvas.height/2); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); status.innerText="Rotate Done"; update();}
+btn.addEventListener('click', async ()=>{
+ if(!imgLoaded){ alert("Pehle image upload karo"); return; }
+ btn.disabled=true;
+ status.innerText="AI Object Ko Pehchan Raha Hai... Wait 10-20 Sec...";
+ log.innerText="Peeche ke saare dabbe hataye ja rahe hain...";
+ try{
+  const blob = await removeBackground(file, {
+    progress: (k,v)=>{ log.innerText = k + " " + Math.round(v*100) + "%"; }
+  });
+  let img=new Image();
+  img.onload=()=>{
+   canvas.width=img.width; canvas.height=img.height;
+   ctx.clearRect(0,0,canvas.width,canvas.height);
+   ctx.drawImage(img,0,0);
+   status.innerText="DONE! Sirf Agla Object Bach Gaya - Peeche Sab Khatam";
+   log.innerText="Ab Download Kar Lo";
+   update();
+   btn.disabled=false;
+  };
+  img.src=URL.createObjectURL(blob);
+ }catch(err){
+  status.innerText="Error: "+err.message;
+  btn.disabled=false;
+  log.innerText="Dubara Try Karo, Net Slow Hai";
+ }
+});
+
+function update(){ document.getElementById('download').href=canvas.toDataURL("image/png"); }
+window.bw=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){let g=(d.data[i]+d.data[i+1]+d.data[i+2])/3; d.data[i]=d.data[i+1]=d.data[i+2]=g;} ctx.putImageData(d,0,0); update();}
+window.compress=()=>{ let t=document.createElement('canvas'); t.width=canvas.width*0.6; t.height=canvas.height*0.6; t.getContext('2d').drawImage(canvas,0,0,t.width,t.height); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); update();}
+window.resize500=()=>{ let t=document.createElement('canvas'); t.width=500; t.height=500; t.getContext('2d').drawImage(canvas,0,0,500,500); canvas.width=500; canvas.height=500; ctx.drawImage(t,0,0); update();}
+window.bright=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]+=40; d.data[i+1]+=40; d.data[i+2]+=40;} ctx.putImageData(d,0,0); update();}
+window.negative=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]=255-d.data[i]; d.data[i+1]=255-d.data[i+1]; d.data[i+2]=255-d.data[i+2];} ctx.putImageData(d,0,0); update();}
+window.rotate=()=>{ let t=document.createElement('canvas'); t.width=canvas.height; t.height=canvas.width; let c=t.getContext('2d'); c.translate(t.width/2,t.height/2); c.rotate(90*Math.PI/180); c.drawImage(canvas,-canvas.width/2,-canvas.height/2); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); update();}
 </script>
 </body>
 </html>
