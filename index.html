@@ -81,17 +81,17 @@ function updateDownloadLink() {
     downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. Real AI Background Removal using Official Browser Library
+// 2. Real AI Background Removal (Corrected function call)
 window.removeBackgroundAI = async function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     
     bgBtn.disabled = true;
     status.innerText = "AI is downloading model & removing background (Please wait 10-20s)...";
-    log.innerText = "Processing via img.ly AI engine...";
+    log.innerText = "Processing via AI engine...";
 
     try {
-        // This calls the real open-source browser AI background removal model
-        const imageBlob = await imglyRemoveBackground(currentFile);
+        // Correct global function name from the bundle
+        const imageBlob = await window.removeBackground(currentFile);
         
         const reader = new FileReader();
         reader.onload = function(e) {
