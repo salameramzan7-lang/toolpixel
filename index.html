@@ -2,42 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ToolPixel - 7 Free AI Tools</title>
 <style>
-body{font-family:sans-serif;margin:0;background:#f8fafc}
-header{background:#fff;padding:14px 20px;display:flex;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-.logo{font-weight:700;font-size:22px}.logo span{color:#6366f1}
-.hero{text-align:center;padding:50px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;padding:24px;max-width:1100px;margin:auto}
-.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
-.btn{background:#6366f1;color:#fff;border:0;padding:10px;border-radius:10px;cursor:pointer;width:100%;margin-top:10px;font-weight:600}
-input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:8px}
-canvas,img{max-width:100%;margin-top:10px;border-radius:8px}
+body{font-family:system-ui,sans-serif;margin:0;background:#f8fafc}
+header{background:#fff;padding:14px 20px;display:flex;justify-content:space-between;box-shadow:0 1px 3px #0001;position:sticky;top:0}
+.logo{font-weight:800;font-size:22px}.logo span{color:#6366f1}
+.hero{text-align:center;padding:40px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;padding:22px;max-width:1100px;margin:auto}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 12px #0001}
+.btn{background:#6366f1;color:#fff;border:0;padding:11px;border-radius:10px;cursor:pointer;width:100%;margin-top:10px;font-weight:700}
+input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:8px;box-sizing:border-box}
+canvas,img{max-width:100%;margin-top:10px;border-radius:8px;display:block}
+a.btn{text-align:center;text-decoration:none;display:block}
 </style>
 </head>
 <body>
-<header><div class="logo">Tool<span>Pixel</span></div><div>USA • Free</div></header>
-<div class="hero"><h1>7 Powerful Tools in 1 Website</h1><p>For USA creators - Free, Fast, No Signup</p></div>
+<header><div class="logo">Tool<span>Pixel</span></div><div>USA • Free • Fast</div></header>
+<div class="hero"><h1 style="margin:0">7 Powerful Tools in 1 Website</h1><p>Fast - 1 Second Load - All Tools Working</p></div>
 <div class="grid">
-<div class="card"><h3>1. Background Remover</h3><input type="file" id="bgFile" accept="image/*"><canvas id="bgCanvas"></canvas><button class="btn" onclick="removeBG()">Remove BG</button><a id="bgDl" download="no-bg.png" style="display:none"><button class="btn">Download</button></a></div>
-<div class="card"><h3>2. Upscaler 2x</h3><input type="file" id="upFile" accept="image/*"><canvas id="upCanvas"></canvas><button class="btn" onclick="upscale()">Upscale</button><a id="upDl" download="upscaled.png" style="display:none"><button class="btn">Download HD</button></a></div>
-<div class="card"><h3>3. Compressor</h3><input type="file" id="compFile" accept="image/*"><canvas id="compCanvas"></canvas><button class="btn" onclick="compress()">Compress</button><a id="compDl" download="compressed.jpg" style="display:none"><button class="btn">Download</button></a></div>
-<div class="card"><h3>4. QR Generator</h3><input type="text" id="qrText" placeholder="Enter link"><div id="qrBox"></div><button class="btn" onclick="makeQR()">Generate QR</button></div>
-<div class="card"><h3>5. Converter</h3><input type="file" id="convFile" accept="image/*"><select id="convType"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select><button class="btn" onclick="convertImg()">Convert</button></div>
-<div class="card"><h3>6. Product White BG</h3><input type="file" id="prodFile" accept="image/*"><canvas id="prodCanvas"></canvas><button class="btn" onclick="whiteBG()">Make White</button><a id="prodDl" download="white.png" style="display:none"><button class="btn">Download</button></a></div>
-<div class="card"><h3>7. YT Thumbnail</h3><input type="text" id="ytLink" placeholder="YouTube link"><div id="ytPre"></div><button class="btn" onclick="getThumb()">Get Thumbnail</button></div>
+<div class="card"><h3>1. Background Remover</h3><input type="file" id="bgFile" accept="image/*"><canvas id="bgCanvas"></canvas><button class="btn" onclick="removeBG()">Remove BG</button><a id="bgDl" download="toolpixel-bg-removed.png" class="btn" style="display:none">Download</a></div>
+<div class="card"><h3>2. Upscaler 2x 4x</h3><input type="file" id="upFile" accept="image/*"><select id="upScale"><option value="2">2x Upscale</option><option value="4">4x Upscale</option></select><canvas id="upCanvas"></canvas><button class="btn" onclick="upscale()">Upscale Now</button></div>
+<div class="card"><h3>3. Compressor</h3><input type="file" id="compFile" accept="image/*"><canvas id="compCanvas"></canvas><button class="btn" onclick="compress()">Compress 70%</button><a id="compDl" download="compressed.jpg" class="btn" style="display:none">Download</a></div>
+<div class="card"><h3>4. QR Generator</h3><input type="text" id="qrText" placeholder="Enter link / text"><div id="qrBox" style="margin-top:10px"></div><button class="btn" onclick="makeQR()">Generate QR</button></div>
+<div class="card"><h3>5. Converter JPG PNG WEBP</h3><input type="file" id="convFile" accept="image/*"><select id="convType"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WEBP</option></select><button class="btn" onclick="convertImg()">Convert Now</button><a id="convDl" class="btn" style="display:none">Download</a></div>
+<div class="card"><h3>6. Product White BG</h3><input type="file" id="prodFile" accept="image/*"><canvas id="prodCanvas"></canvas><button class="btn" onclick="whiteBG()">Make White BG</button></div>
+<div class="card"><h3>7. YT Thumbnail Downloader</h3><input type="text" id="ytLink" placeholder="Paste YouTube link here"><div id="ytPre"></div><button class="btn" onclick="getThumb()">Get Thumbnail</button></div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
 <script>
-function loadImg(f,cb){var r=new FileReader();r.onload=e=>{var i=new Image();i.onload=()=>cb(i);i.src=e.target.result};r.readAsDataURL(f)}
-function removeBG(){var f=document.getElementById('bgFile').files[0];loadImg(f,img=>{var c=document.getElementById('bgCanvas');c.width=img.width;c.height=img.height;var ctx=c.getContext('2d');ctx.drawImage(img,0,0);var d=ctx.getImageData(0,0,c.width,c.height);for(var i=0;i<d.data.length;i+=4){if(d.data[i]>240&&d.data[i+1]>240&&d.data[i+2]>240)d.data[i+3]=0}ctx.putImageData(d,0,0);document.getElementById('bgDl').href=c.toDataURL();document.getElementById('bgDl').style.display='block'})}
-function upscale(){var f=document.getElementById('upFile').files[0];loadImg(f,img=>{var c=document.getElementById('upCanvas');c.width=img.width*2;c.height=img.height*2;c.getContext('2d').drawImage(img,0,0,c.width,c.height);document.getElementById('upDl').href=c.toDataURL();document.getElementById('upDl').style.display='block'})}
-function compress(){var f=document.getElementById('compFile').files[0];loadImg(f,img=>{var c=document.getElementById('compCanvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);document.getElementById('compDl').href=c.toDataURL('image/jpeg',0.7);document.getElementById('compDl').style.display='block'})}
-function makeQR(){var t=document.getElementById('qrText').value;document.getElementById('qrBox').innerHTML='';new QRCode(document.getElementById('qrBox'),{text:t,width:200,height:200})}
-function convertImg(){var f=document.getElementById('convFile').files[0];var type=document.getElementById('convType').value;loadImg(f,img=>{var c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);var a=document.createElement('a');a.download='converted.'+type.split('/')[1];a.href=c.toDataURL(type);a.click()})}
-function whiteBG(){var f=document.getElementById('prodFile').files[0];loadImg(f,img=>{var c=document.getElementById('prodCanvas');c.width=img.width;c.height=img.height;var ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0);document.getElementById('prodDl').href=c.toDataURL();document.getElementById('prodDl').style.display='block'})}
-function getThumb(){var l=document.getElementById('ytLink').value;var id=l.includes('v=')?l.split('v=')[1].split('&')[0]:l.split('youtu.be/')[1]||l;var url='https://img.youtube.com/vi/'+id+'/maxresdefault.jpg';document.getElementById('ytPre').innerHTML='<img src="'+url+'"><a href="'+url+'" target="_blank"><button class="btn">Download HD</button></a>'}
+function loadImg(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){cb(i)};i.src=r.result};r.readAsDataURL(f)}
+function removeBG(){var f=document.getElementById('bgFile').files[0];if(!f)return alert('Image select karo');loadImg(f,function(img){var c=document.getElementById('bgCanvas');c.width=img.width;c.height=img.height;var x=c.getContext('2d');x.drawImage(img,0,0);var d=x.getImageData(0,0,c.width,c.height),D=d.data;for(var i=0;i<D.length;i+=4){if(D[i]>220&&D[i+1]>220&&D[i+2]>220)D[i+3]=0}x.putImageData(d,0,0);var a=document.getElementById('bgDl');a.href=c.toDataURL();a.style.display='block'})}
+function upscale(){var f=document.getElementById('upFile').files[0];var s=parseInt(document.getElementById('upScale').value);if(!f)return alert('Image select karo');loadImg(f,function(img){var c=document.getElementById('upCanvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height)})}
+function compress(){var f=document.getElementById('compFile').files[0];if(!f)return alert('Image select karo');loadImg(f,function(img){var c=document.getElementById('compCanvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);var a=document.getElementById('compDl');a.href=c.toDataURL('image/jpeg',0.6);a.style.display='block';a.innerText='Download Compressed'})}
+function makeQR(){var t=document.getElementById('qrText').value;if(!t)return alert('Text likho');document.getElementById('qrBox').innerHTML='';new QRCode(document.getElementById('qrBox'),{text:t,width:200,height:200})}
+function convertImg(){var f=document.getElementById('convFile').files[0];var tp=document.getElementById('convType').value;if(!f)return alert('Image select karo');loadImg(f,function(img){var c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);var a=document.getElementById('convDl');a.href=c.toDataURL(tp);a.download='toolpixel.'+tp.split('/')[1];a.style.display='block';a.innerText='Download '+tp.split('/')[1].toUpperCase()})}
+function whiteBG(){var f=document.getElementById('prodFile').files[0];if(!f)return alert('Image select karo');loadImg(f,function(img){var c=document.getElementById('prodCanvas');c.width=img.width;c.height=img.height;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0)})}
+function getThumb(){var l=document.getElementById('ytLink').value.trim();if(!l)return alert('Link paste karo');var id='';if(l.includes('v='))id=l.split('v=')[1].split('&')[0];else id=l.split('/').pop().split('?')[0];var h='https://img.youtube.com/vi/'+id+'/maxresdefault.jpg';document.getElementById('ytPre').innerHTML='<img src="'+h+'" style="width:100%"><a href="'+h+'" target="_blank" class="btn">Download HD Thumbnail</a>'}
 </script>
 </body>
 </html>
