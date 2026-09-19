@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="ur">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ToolPixel - AI Object Cut</title>
 <style>
-body{background:#111;color:#fff;font-family:Arial;text-align:center;padding:10px}
+body{background:#111;color:#fff;font-family:Arial, sans-serif;text-align:center;padding:10px}
 h1{color:#00ff88}
 canvas{max-width:95%;margin:15px auto;display:block;border-radius:12px;background:repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;min-height:250px}
-button{background:#00ff88;color:#000;border:none;padding:14px 16px;margin:6px;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer}
+button{background:#00ff88;color:#000;border:none;padding:14px 16px;margin:6px;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer;transition:0.2s}
+button:hover{opacity:0.8}
+button:disabled{background:#555;color:#888;cursor:not-allowed}
 #status{color:yellow;font-weight:bold;font-size:18px;margin:12px}
-#download{background:#0088ff;color:#fff;padding:14px 22px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:10px}
-#log{color:#aaa;font-size:12px}
+#download{background:#0088ff;color:#fff;padding:14px 22px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:10px;font-weight:bold}
+#log{color:#aaa;font-size:13px;margin-bottom:10px}
 </style>
 </head>
 <body>
+
 <h1>ToolPixel - AI Object Only</h1>
 <p id="status">Image Upload Karo</p>
 <p id="log">AI Model First Time 15 Sec Legi, Fir Fast</p>
 <input type="file" id="upload" accept="image/*"><br>
 <canvas id="canvas"></canvas><br>
+
 <button id="bgBtn">1. AI Remove - Only Object Rakho</button>
 <button onclick="bw()">2. Black & White</button>
 <button onclick="compress()">3. Compress</button>
@@ -31,65 +35,156 @@ button{background:#00ff88;color:#000;border:none;padding:14px 16px;margin:6px;bo
 <a id="download" download="object-only.png">⬇️ Download Object</a>
 
 <script type="module">
-import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.esm.js";
+import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.7/dist/index.esm.js";
 
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-const status=document.getElementById('status');
-const log=document.getElementById('log');
-const btn=document.getElementById('bgBtn');
-let file=null;
-let imgLoaded=false;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+const log = document.getElementById('log');
+const btn = document.getElementById('bgBtn');
+let file = null;
+let imgLoaded = false;
 
-document.getElementById('upload').addEventListener('change', e=>{
- file=e.target.files[0];
- if(!file) return;
- status.innerText="Image Loading...";
- let img=new Image();
- img.onload=()=>{
-  canvas.width=img.width; canvas.height=img.height;
-  ctx.drawImage(img,0,0);
-  imgLoaded=true;
-  status.innerText="Image Ready! Ab Button Dabao - Sirf Object Bachega";
-  update();
- };
- img.src=URL.createObjectURL(file);
+document.getElementById('upload').addEventListener('change', e => {
+    file = e.target.files[0];
+    if(!file) return;
+    status.innerText = "Image Loading...";
+    let img = new Image();
+    img.onload = () => {
+        canvas.width = img.width; 
+        canvas.height = img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        imgLoaded = true;
+        status.innerText = "Image Ready! Ab Button Dabao - Sirf Object Bachega";
+        updateDownloadLink();
+    };
+    img.src = URL.createObjectURL(file);
 });
 
-btn.addEventListener('click', async ()=>{
- if(!imgLoaded){ alert("Pehle image upload karo"); return; }
- btn.disabled=true;
- status.innerText="AI Object Ko Pehchan Raha Hai... Wait 10-20 Sec...";
- log.innerText="Peeche ke saare dabbe hataye ja rahe hain...";
- try{
-  const blob = await removeBackground(file, {
-    progress: (k,v)=>{ log.innerText = k + " " + Math.round(v*100) + "%"; }
-  });
-  let img=new Image();
-  img.onload=()=>{
-   canvas.width=img.width; canvas.height=img.height;
-   ctx.clearRect(0,0,canvas.width,canvas.height);
-   ctx.drawImage(img,0,0);
-   status.innerText="DONE! Sirf Agla Object Bach Gaya - Peeche Sab Khatam";
-   log.innerText="Ab Download Kar Lo";
-   update();
-   btn.disabled=false;
-  };
-  img.src=URL.createObjectURL(blob);
- }catch(err){
-  status.innerText="Error: "+err.message;
-  btn.disabled=false;
-  log.innerText="Dubara Try Karo, Net Slow Hai";
- }
+btn.addEventListener('click', async () => {
+    if(!imgLoaded) { 
+        alert("Pehle image upload karo!"); 
+        return; 
+    }
+    btn.disabled = true;
+    status.innerText = "AI Model Run Ho Raha Hai... Thوڑا انتظار کریں...";
+    log.innerText = "Model download اور initialize ہو رہا ہے (پہلی بار وقت لے گا)...";
+    
+    try {
+        // config کے ساتھ ماڈल کال کریں تاکہ پبلک ایسٹس ٹھیک طرح سے لوڈ ہوں
+        const blob = await removeBackground(file, {
+            progress: (key, current, total) => {
+                if (total) {
+                    log.innerText = `${key}: ${Math.round((current / total) * 100)}%`;
+                } else {
+                    log.innerText = `${key}`;
+                }
+            },
+            publicPath: "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.7/dist/"
+        });
+
+        let img = new Image();
+        img.onload = () => {
+            canvas.width = img.width; 
+            canvas.height = img.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            status.innerText = "DONE! Sirf Object Bach Gaya - Peeche Sab Khatam";
+            log.innerText = "Ab Download Kar Lo";
+            updateDownloadLink();
+            btn.disabled = false;
+        };
+        img.src = URL.createObjectURL(blob);
+
+    } catch (err) {
+        console.error(err);
+        status.innerText = "Error: Background Remove nahi ho saka.";
+        log.innerText = "وجہ: انٹرنیٹ کنکشن چیک کریں یا براؤزر کنسول (F12) دیکھیں۔";
+        btn.disabled = false;
+    }
 });
 
-function update(){ document.getElementById('download').href=canvas.toDataURL("image/png"); }
-window.bw=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){let g=(d.data[i]+d.data[i+1]+d.data[i+2])/3; d.data[i]=d.data[i+1]=d.data[i+2]=g;} ctx.putImageData(d,0,0); update();}
-window.compress=()=>{ let t=document.createElement('canvas'); t.width=canvas.width*0.6; t.height=canvas.height*0.6; t.getContext('2d').drawImage(canvas,0,0,t.width,t.height); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); update();}
-window.resize500=()=>{ let t=document.createElement('canvas'); t.width=500; t.height=500; t.getContext('2d').drawImage(canvas,0,0,500,500); canvas.width=500; canvas.height=500; ctx.drawImage(t,0,0); update();}
-window.bright=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]+=40; d.data[i+1]+=40; d.data[i+2]+=40;} ctx.putImageData(d,0,0); update();}
-window.negative=()=>{ let d=ctx.getImageData(0,0,canvas.width,canvas.height); for(let i=0;i<d.data.length;i+=4){d.data[i]=255-d.data[i]; d.data[i+1]=255-d.data[i+1]; d.data[i+2]=255-d.data[i+2];} ctx.putImageData(d,0,0); update();}
-window.rotate=()=>{ let t=document.createElement('canvas'); t.width=canvas.height; t.height=canvas.width; let c=t.getContext('2d'); c.translate(t.width/2,t.height/2); c.rotate(90*Math.PI/180); c.drawImage(canvas,-canvas.width/2,-canvas.height/2); canvas.width=t.width; canvas.height=t.height; ctx.drawImage(t,0,0); update();}
+function updateDownloadLink() { 
+    document.getElementById('download').href = canvas.toDataURL("image/png"); 
+}
+
+// دوسرے ٹولز کی فنکشنلٹی
+window.bw = () => { 
+    if(!imgLoaded) return alert("Pehle image upload karo");
+    let d = ctx.getImageData(0, 0, canvas.width, canvas.height); 
+    for(let i = 0; i < d.data.length; i += 4) {
+        let g = (d.data[i] + d.data[i+1] + d.data[i+2]) / 3; 
+        d.data[i] = d.data[i+1] = d.data[i+2] = g;
+    } 
+    ctx.putImageData(d, 0, 0); 
+    updateDownloadLink();
+}
+
+window.compress = () => { 
+    if(!imgLoaded) return alert("Pehle image upload karo");
+    let t = document.createElement('canvas'); 
+    t.width = canvas.width * 0.6; 
+    t.height = canvas.height * 0.6; 
+    t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height); 
+    canvas.width = t.width; 
+    canvas.height = t.height; 
+    ctx.drawImage(t, 0, 0); 
+    updateDownloadLink();
+}
+
+window.resize500 = () => { 
+    if(!imgLoaded) return alert("Pehle image upload karo");
+    let t = document.createElement('canvas'); 
+    t.width = 500; 
+    t.height = 500; 
+    t.getContext('2d').drawImage(canvas, 0, 0, 500, 500); 
+    canvas.width = 500; 
+    canvas.height = 500; 
+    ctx.drawImage(t, 0, 0); 
+    updateDownloadLink();
+}
+
+window.bright = () => { 
+    if(!imgLoaded) return alert("Pehle image upload karo");
+    let d = ctx.getImageData(0, 0, canvas.width, canvas.height); 
+    for(let i = 0; i < d.data.length; i += 4) {
+        d.data[i] = Math.min(255, d.data[i] + 40); 
+        d.data[i+1] = Math.min(255, d.data[i+1] + 40); 
+        d.data[i+2] = Math.min(255, d.data[i+2] + 40);
+    } 
+    ctx.putImageData(d, 0, 0); 
+    updateDownloadLink();
+}
+
+window.negative = () => { 
+    if(!imgLoaded) return alert("Pehle image upload karo");
+    let d = canvas.width ? ctx.getImageData(0, 0, canvas.width, canvas.height) : null;
+    if(!d) return;
+    for(let i = 0; i < d.data.length; i += 4) {
+        d.data[i] = 255 - d.data[i]; 
+        d.data[i+1] = 255 - d.data[i+1]; 
+        d.data[i+2] = 255 - d.data[i+2];
+    } 
+    ctx.putImageData(d, 0, 0); 
+    updateDownloadLink();
+}
+
+window.rotate = () => { 
+    if(!imgLoaded) return alert("Pehle image upload GitHub پر اپ ڈیٹ کرو");
+    let t = document.createElement('canvas'); 
+    t.width = canvas.height; 
+    t.height = canvas.width; 
+    let c = t.getContext('2d'); 
+    c.translate(t.width / 2, t.height / 2); 
+    c.rotate(90 * Math.PI / 180); 
+    c.drawImage(canvas, -canvas.width / 2, -canvas.height / 2); 
+    canvas.width = t.width; 
+    canvas.height = t.height; 
+    ctx.drawImage(t, 0, 0); 
+    updateDownloadLink();
+}
 </script>
+
 </body>
 </html>
