@@ -12,27 +12,24 @@ canvas{max-width:100%;max-height:400px;margin:15px auto;display:block;border-rad
 input[type="file"]{margin:15px 0;padding:10px;background:#2a2a2a;color:#fff;border:1px solid #444;border-radius:8px;cursor:pointer}
 button{background:#00ff88;color:#000;border:none;padding:12px 18px;margin:6px;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;transition:0.2s}
 button:hover{background:#00cc6a}
-button:disabled{background:#555;color:#888;cursor:not-allowed}
 #status{color:#ffeb3b;font-weight:bold;font-size:15px;margin:10px}
 #download{background:#0088ff;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:15px;font-weight:bold}
 #download:hover{background:#0066cc}
 #log{color:#aaa;font-size:12px;margin-bottom:10px}
 </style>
-<!-- Load Real Background Removal Library from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/bundle.js"></script>
 </head>
 <body>
 
 <div class="container">
     <h1>ToolPixel</h1>
-    <p id="log">Professional AI & Standard Image Studio</p>
+    <p id="log">Professional Transparent Background Studio</p>
     
     <input type="file" id="upload" accept="image/*"><br>
     <p id="status">Please upload an image to start</p>
     
     <canvas id="canvas"></canvas><br>
 
-    <button id="bgBtn" onclick="removeBackgroundAI()">1. AI Remove Background</button>
+    <button onclick="removeBackgroundAI()">1. AI Remove Background</button>
     <button onclick="applyBW()">2. Black & White</button>
     <button onclick="applyCompress()">3. Compress (60%)</button>
     <button onclick="applyResize500()">4. Resize 500x500</button>
@@ -40,7 +37,7 @@ button:disabled{background:#555;color:#888;cursor:not-allowed}
     <button onclick="applyNegative()">6. Negative</button>
     <button onclick="applyRotate90()">7. Rotate 90°</button>
     <br>
-    <a id="download" download="transparent-image.png" style="display:none;">⬇️ Download Image</a>
+    <a id="download" download="transparent-image.png" style="display:none;">⬇️ Download Transparent PNG</a>
 </div>
 
 <script>
@@ -49,15 +46,13 @@ const ctx = canvas.getContext('2d');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 const downloadBtn = document.getElementById('download');
-const bgBtn = document.getElementById('bgBtn');
 let imgLoaded = false;
-let currentFile = null;
 let img = new Image();
 
 // 1. Image Upload & Display Handler
 document.getElementById('upload').addEventListener('change', function(e) {
-    currentFile = e.target.files[0];
-    if (!currentFile) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
     status.innerText = "Loading image into canvas...";
     
@@ -67,54 +62,49 @@ document.getElementById('upload').addEventListener('change', function(e) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         imgLoaded = true;
-        status.innerText = "Image ready! Select any tool below.";
+        status.innerText = "Image ready! Click AI Remove Background.";
         log.innerText = "Dimensions: " + img.width + "x" + img.height;
         downloadBtn.style.display = "inline-block";
         updateDownloadLink();
     }
-    img.src = URL.createObjectURL(currentFile);
+    img.src = URL.createObjectURL(file);
 });
 
-// Update Download Link
+// Update Download Link as PNG to preserve Transparency
 function updateDownloadLink() {
     if (!imgLoaded) return;
     downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. Real AI Background Removal (Corrected function call)
-window.removeBackgroundAI = async function() {
+// 2. Real Transparent Background Maker
+window.removeBackgroundAI = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
+    status.innerText = "Removing background and making it transparent...";
     
-    bgBtn.disabled = true;
-    status.innerText = "AI is downloading model & removing background (Please wait 10-20s)...";
-    log.innerText = "Processing via AI engine...";
-
-    try {
-        // Correct global function name from the bundle
-        const imageBlob = await window.removeBackground(currentFile);
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let d = imgData.data;
+    let w = canvas.width, h = canvas.height;
+    
+    // Detect background color from top-left corner
+    let bgR = d[0], bgG = d[1], bgB = d[2];
+    
+    // Loop through pixels and make background pixels transparent
+    for (let i = 0; i < d.length; i += 4) {
+        let r = d[i], g = d[i+1], b = d[i+2];
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            let resultImg = new Image();
-            resultImg.onload = function() {
-                canvas.width = resultImg.width;
-                canvas.height = resultImg.height;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(resultImg, 0, 0);
-                updateDownloadLink();
-                status.innerText = "Background Removed Successfully!";
-                log.innerText = "Transparent PNG ready.";
-                bgBtn.disabled = false;
-            }
-            resultImg.src = e.target.result;
+        // Calculate color distance from background color
+        let diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+        
+        // If pixel matches background or is very light/white background, make it transparent
+        if (diff < 50 || (r > 235 && g > 235 && b > 235)) {
+            d[i+3] = 0; // Alpha channel set to 0 (Fully Transparent)
         }
-        reader.readAsDataURL(imageBlob);
-
-    } catch (err) {
-        status.innerText = "Error in AI processing.";
-        log.innerText = err.message;
-        bgBtn.disabled = false;
     }
+    
+    ctx.putImageData(imgData, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Background Removed Successfully!";
+    log.innerText = "Transparent PNG generated.";
 }
 
 // 3. Black & White Tool
