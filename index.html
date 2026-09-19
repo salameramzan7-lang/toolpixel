@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToolPixel - AI Object Cut</title>
+<style>
+body{background:#111;color:#fff;font-family:Arial, sans-serif;text-align:center;padding:10px}
+h1{color:#00ff88}
+canvas{max-width:90%;max-height:400px;margin:15px auto;display:block;border-radius:12px;background:repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;border: 2px dashed #444;}
+button{background:#00ff88;color:#000;border:none;padding:12px 16px;margin:6px;border-radius:10px;font-weight:bold;font-size:14px;cursor:pointer;transition:0.2s}
+button:hover{opacity:0.8}
+#status{color:yellow;font-weight:bold;font-size:16px;margin:10px}
+#download{background:#0088ff;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;margin-top:10px;font-weight:bold}
+#log{color:#aaa;font-size:12px;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<h1>ToolPixel - AI Object Only</h1>
+<p id="status">Pehle Image Upload Karo</p>
+<p id="log">Image select karte hi canvas par show ho jayegi</p>
+<input type="file" id="upload" accept="image/*"><br>
+<canvas id="canvas"></canvas><br>
+
+<button id="bgBtn">1. AI Remove BG</button>
+<button onclick="bw()">2. Black & White</button>
+<button onclick="compress()">3. Compress (60%)</button>
+<button onclick="resize500()">4. Resize 500x500</button>
+<button onclick="bright()">5. Brightness +</button>
+<button onclick="negative()">6. Negative</button>
+<button onclick="rotate()">7. Rotate 90°</button>
+<br><br>
+<a id="download" download="edited-image.png">⬇️ Download Image</a>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const status = document.getElementById('status');
+const log = document.getElementById('log');
+let imgLoaded = false;
+let currentImg = new Image();
+
+// 1. Image Upload & Instant Canvas Rendering
+document.getElementById('upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    status.innerText = "Image Load ہو رہی ہے...";
+    let reader = new FileReader();
+    
+    reader.onload = function(event) {
+        currentImg.onload = function() {
+            canvas.width = currentImg.width;
+            canvas.height = currentImg.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImg, 0, 0);
+            imgLoaded = true;
+            status.innerText = "Image Ready! اب کوئی بھی ٹول استعمال کریں";
+            log.innerText = "تصویر کامیابی سے کینوس پر لوڈ ہو چکی ہے";
+            updateDownloadLink();
+        }
+        currentImg.src = event.target.result;
+    }
+    reader.readAsDataURL(file);
+});
+
+// Download Link Updater
+function updateDownloadLink() {
+    if (!imgLoaded) return;
+    document.getElementById('download').href = canvas.toDataURL("image/png");
+}
+
+// 2. AI Background Remove Placeholder / API Integration option
+document.getElementById('bgBtn').addEventListener('click', function() {
+    if (!imgLoaded) {
+        alert("پہلے تصویر اپ لوڈ کریں!");
+        return;
+    }
+    status.innerText = "AI پروسیسنگ جاری ہے...";
+    log.innerText = "GitHub Pages پر ہیوی AI ماڈلز براؤزر کی سیکیورٹی پالیسی (COOP/COEP) کی وجہ سے بلاک ہو جاتے ہیں۔";
+    alert("نوٹ: براہِ راست براؤزر میں AI ماڈل رن کرنے کے لیے سرور یا درست CORS ہیڈرز درکار ہوتے ہیں۔ آپ چاہیں تو اس بٹن پر کوئی ایکسٹرنل API (جیسے Remove.bg API) جوڑ سکتے ہیں۔ باقی تمام فوٹو ایڈیٹنگ ٹولز بالکل ٹھیک کام کر رہے ہیں۔");
+    status.innerText = "ایڈیٹنگ ٹولز استعمال کریں";
+});
+
+// 3. Image Editing Tools
+window.bw = function() {
+    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+        let avg = (d[i] + d[i+1] + d[i+2]) / 3;
+        d[i] = avg; d[i+1] = avg; d[i+2] = avg;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Black & White اپلائی ہو گیا!";
+}
+
+window.compress = function() {
+    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let t = document.createElement('canvas');
+    t.width = canvas.width * 0.6;
+    t.height = canvas.height * 0.6;
+    t.getContext('2d').drawImage(canvas, 0, 0, t.width, t.height);
+    canvas.width = t.width;
+    canvas.height = t.height;
+    ctx.drawImage(t, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Compress ہو گئی!";
+}
+
+window.resize500 = function() {
+    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let t = document.createElement('canvas');
+    t.width = 500; t.height = 500;
+    t.getContext('2d').drawImage(canvas, 0, 0, 500, 500);
+    canvas.width = 500; canvas.height = 500;
+    ctx.drawImage(t, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Resize 500x500 ہو گئی!";
+}
+
+window.bright = function() {
+    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+        d[i] = Math.min(255, d[i] + 40);
+        d[i+1] = Math.min(255, d[i+1] + 40);
+        d[i+2] = Math.min(255, d[i+2] + 40);
+    }
+    ctx.putImageData(imgData, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Brightness بڑھ گئی!";
+}
+
+window.negative = function() {
+    if !imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+        d[i] = 255 - d[i];
+        d[i+1] = 255 - d[i+1];
+        d[i+2] = 255 - d[i+2];
+    }
+    ctx.putImageData(imgData, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Negative ایفیکٹ لگ گیا!";
+}
+
+window.rotate = function() {
+    if (!imgLoaded) return alert("پہلے تصویر اپ لوڈ کریں!");
+    let t = document.createElement('canvas');
+    t.width = canvas.height;
+    t.height = canvas.width;
+    let c = t.getContext('2d');
+    c.translate(t.width / 2, t.height / 2);
+    c.rotate(90 * Math.PI / 180);
+    c.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+    canvas.width = t.width;
+    canvas.height = t.height;
+    ctx.drawImage(t, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Rotate ہو گئی!";
+}
+</script>
+
+</body>
+</html>
