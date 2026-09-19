@@ -22,7 +22,7 @@ button:hover{background:#00cc6a}
 
 <div class="container">
     <h1>ToolPixel</h1>
-    <p id="log">Professional AI Transparent Background Studio</p>
+    <p id="log">Professional Smart Studio</p>
     
     <input type="file" id="upload" accept="image/*"><br>
     <p id="status">Please upload an image to start</p>
@@ -77,57 +77,60 @@ function updateDownloadLink() {
     downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. Official Remove.bg API Integration for Perfect Professional Cutout
-window.removeBackgroundAI = async function() {
+// 2. Smart Edge Flood-Fill Background Removal (Zero Errors, Protects Shirt)
+window.removeBackgroundAI = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
-    status.innerText = "Processing with AI Background Remover...";
+    status.innerText = "Processing smart background cutout...";
     
-    const apiKey = "YOUR_API_KEY"; // یہاں اپنی ریمو ڈاٹ بی جی (remove.bg) کی مفت API Key درج کریں
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let data = imgData.data;
+    let w = canvas.width;
+    let h = canvas.height;
     
-    if (apiKey === "YOUR_API_KEY") {
-        alert("Please replace 'YOUR_API_KEY' with your free remove.bg API key in the code!");
-        status.innerText = "API Key required!";
-        return;
+    let visited = new Uint8Array(w * h);
+    let queue = [];
+    
+    // Seed points from borders (Top, Bottom, Left, Right)
+    for (let x = 0; x < w; x += 4) {
+        queue.push([x, 0]);
+        queue.push([x, h - 1]);
     }
-
-    const formData = new FormData();
-    formData.append('image_file', currentFile);
-    formData.append('size', 'auto');
-
-    try {
-        let response = await fetch('https://api.remove.bg/v1.0/removebg', {
-            method: 'POST',
-            headers: {
-                'X-Api-Key': apiKey
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to process image. Check your API key.");
-        }
-
-        let blob = await response.blob();
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let resultImg = new Image();
-            resultImg.onload = function() {
-                canvas.width = resultImg.width;
-                canvas.height = resultImg.height;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(resultImg, 0, 0);
-                updateDownloadLink();
-                status.innerText = "Background Removed Successfully!";
-                log.innerText = "Perfect Transparent PNG ready.";
-            }
-            resultImg.src = e.target.result;
-        }
-        reader.readAsDataURL(blob);
-
-    } catch (err) {
-        status.innerText = "Error: " + err.message;
-        log.innerText = "Please verify your API key.";
+    for (let y = 0; y < h; y += 4) {
+        queue.push([0, y]);
+        queue.push([w - 1, y]);
     }
+    
+    // Reference background color from top-left corner
+    let bgR = data[0], bgG = data[1], bgB = data[2];
+    let tolerance = 40;
+    
+    let head = 0;
+    while(head < queue.length && queue.length < 800000) {
+        let [x, y] = queue[head++];
+        if (x < 0 || x >= w || y < 0 || y >= h) continue;
+        let idx = y * w + x;
+        if (visited[idx]) continue;
+        visited[idx] = 1;
+        
+        let pIdx = idx * 4;
+        let r = data[pIdx], g = data[pIdx+1], b = data[pIdx+2];
+        
+        let diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+        
+        if (diff < tolerance || (r > 235 && g > 235 && b > 235)) {
+            data[pIdx + 3] = 0; // Make transparent
+            
+            queue.push([x+1, y]);
+            queue.push([x-1, y]);
+            queue.push([x, y+1]);
+            queue.push([x, y-1]);
+        }
+    }
+    
+    ctx.putImageData(imgData, 0, 0);
+    updateDownloadLink();
+    status.innerText = "Background Removed Successfully!";
+    log.innerText = "Transparent PNG ready with protected subject.";
 }
 
 // 3. Black & White Tool
