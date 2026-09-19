@@ -22,7 +22,7 @@ button:hover{background:#00cc6a}
 
 <div class="container">
     <h1>ToolPixel</h1>
-    <p id="log">Professional Transparent Background Studio</p>
+    <p id="log">Professional AI Transparent Background Studio</p>
     
     <input type="file" id="upload" accept="image/*"><br>
     <p id="status">Please upload an image to start</p>
@@ -47,12 +47,13 @@ const status = document.getElementById('status');
 const log = document.getElementById('log');
 const downloadBtn = document.getElementById('download');
 let imgLoaded = false;
+let currentFile = null;
 let img = new Image();
 
 // 1. Image Upload & Display Handler
 document.getElementById('upload').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    currentFile = e.target.files[0];
+    if (!currentFile) return;
 
     status.innerText = "Loading image into canvas...";
     
@@ -67,44 +68,66 @@ document.getElementById('upload').addEventListener('change', function(e) {
         downloadBtn.style.display = "inline-block";
         updateDownloadLink();
     }
-    img.src = URL.createObjectURL(file);
+    img.src = URL.createObjectURL(currentFile);
 });
 
-// Update Download Link as PNG to preserve Transparency
+// Update Download Link as PNG
 function updateDownloadLink() {
     if (!imgLoaded) return;
     downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. Real Transparent Background Maker
-window.removeBackgroundAI = function() {
+// 2. Official Remove.bg API Integration for Perfect Professional Cutout
+window.removeBackgroundAI = async function() {
     if (!imgLoaded) return alert("Please upload an image first!");
-    status.innerText = "Removing background and making it transparent...";
+    status.innerText = "Processing with AI Background Remover...";
     
-    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let d = imgData.data;
-    let w = canvas.width, h = canvas.height;
+    const apiKey = "YOUR_API_KEY"; // یہاں اپنی ریمو ڈاٹ بی جی (remove.bg) کی مفت API Key درج کریں
     
-    // Detect background color from top-left corner
-    let bgR = d[0], bgG = d[1], bgB = d[2];
-    
-    // Loop through pixels and make background pixels transparent
-    for (let i = 0; i < d.length; i += 4) {
-        let r = d[i], g = d[i+1], b = d[i+2];
-        
-        // Calculate color distance from background color
-        let diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
-        
-        // If pixel matches background or is very light/white background, make it transparent
-        if (diff < 50 || (r > 235 && g > 235 && b > 235)) {
-            d[i+3] = 0; // Alpha channel set to 0 (Fully Transparent)
-        }
+    if (apiKey === "YOUR_API_KEY") {
+        alert("Please replace 'YOUR_API_KEY' with your free remove.bg API key in the code!");
+        status.innerText = "API Key required!";
+        return;
     }
-    
-    ctx.putImageData(imgData, 0, 0);
-    updateDownloadLink();
-    status.innerText = "Background Removed Successfully!";
-    log.innerText = "Transparent PNG generated.";
+
+    const formData = new FormData();
+    formData.append('image_file', currentFile);
+    formData.append('size', 'auto');
+
+    try {
+        let response = await fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: {
+                'X-Api-Key': apiKey
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to process image. Check your API key.");
+        }
+
+        let blob = await response.blob();
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let resultImg = new Image();
+            resultImg.onload = function() {
+                canvas.width = resultImg.width;
+                canvas.height = resultImg.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(resultImg, 0, 0);
+                updateDownloadLink();
+                status.innerText = "Background Removed Successfully!";
+                log.innerText = "Perfect Transparent PNG ready.";
+            }
+            resultImg.src = e.target.result;
+        }
+        reader.readAsDataURL(blob);
+
+    } catch (err) {
+        status.innerText = "Error: " + err.message;
+        log.innerText = "Please verify your API key.";
+    }
 }
 
 // 3. Black & White Tool
