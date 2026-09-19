@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolPixel - Ultimate Image Editor</title>
+<title>ToolPixel - Professional Image Editor</title>
 <style>
 body{background:#121212;color:#fff;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;text-align:center;padding:20px}
 h1{color:#00ff88;margin-bottom:5px}
@@ -18,6 +18,8 @@ button:disabled{background:#555;color:#888;cursor:not-allowed}
 #download:hover{background:#0066cc}
 #log{color:#aaa;font-size:12px;margin-bottom:10px}
 </style>
+<!-- Load Real Background Removal Library from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/bundle.js"></script>
 </head>
 <body>
 
@@ -38,7 +40,7 @@ button:disabled{background:#555;color:#888;cursor:not-allowed}
     <button onclick="applyNegative()">6. Negative</button>
     <button onclick="applyRotate90()">7. Rotate 90°</button>
     <br>
-    <a id="download" download="processed-image.png" style="display:none;">⬇️ Download Image</a>
+    <a id="download" download="transparent-image.png" style="display:none;">⬇️ Download Image</a>
 </div>
 
 <script>
@@ -79,79 +81,49 @@ function updateDownloadLink() {
     downloadBtn.href = canvas.toDataURL("image/png");
 }
 
-// 2. Real AI Background Removal using Free Web Service Integration
+// 2. Real AI Background Removal using Official Browser Library
 window.removeBackgroundAI = async function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     
     bgBtn.disabled = true;
-    status.innerText = "AI is processing background removal...";
-    log.innerText = "Sending image to background removal engine...";
+    status.innerText = "AI is downloading model & removing background (Please wait 10-20s)...";
+    log.innerText = "Processing via img.ly AI engine...";
 
     try {
-        // Form data creation for API request
-        let formData = new FormData();
-        formData.append('image_file', currentFile);
-
-        // Using a reliable public API endpoint for background removal
-        let response = await fetch('https://api.remove.bg/v1.0/removebg', {
-            method: 'POST',
-            headers: {
-                // If you have a free remove.bg API key, paste it here. Otherwise, it uses fallback smart processing.
-                'X-Api-Key': 'YOUR_FREE_API_KEY_HERE' 
-            },
-            body: formData
-        });
-
-        if (response.ok) {
-            let blob = await response.blob();
-            let newImg = new Image();
-            newImg.onload = function() {
-                canvas.width = newImg.width;
-                canvas.height = newImg.height;
+        // This calls the real open-source browser AI background removal model
+        const imageBlob = await imglyRemoveBackground(currentFile);
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let resultImg = new Image();
+            resultImg.onload = function() {
+                canvas.width = resultImg.width;
+                canvas.height = resultImg.height;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(newImg, 0, 0);
+                ctx.drawImage(resultImg, 0, 0);
                 updateDownloadLink();
                 status.innerText = "Background Removed Successfully!";
-                log.innerText = "Transparent cutout ready.";
+                log.innerText = "Transparent PNG ready.";
                 bgBtn.disabled = false;
             }
-            newImg.src = URL.createObjectURL(blob);
-        } else {
-            // Free Client-side fallback: Smart subject extraction if API key isn't provided
-            throw new Error("API Key required or limit reached. Using advanced smart edge cutout.");
+            resultImg.src = e.target.result;
         }
+        reader.readAsDataURL(imageBlob);
+
     } catch (err) {
-        // Fallback robust edge-detection cutout for free tier usage
-        setTimeout(() => {
-            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let d = imgData.data;
-            // Refined edge cleaning to protect central subjects while clearing plain borders
-            let w = canvas.width, h = canvas.height;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let idx = (y * w + x) * 4;
-                    // Check border pixels for background cleanup
-                    if ((x < 10 || x > w - 10 || y < 10 || y > h - 10) && d[idx] > 220 && d[idx+1] > 220 && d[idx+2] > 220) {
-                        d[idx+3] = 0;
-                    }
-                }
-            }
-            ctx.putImageData(imgData, 0, 0);
-            updateDownloadLink();
-            status.innerText = "Background Cleaned via Smart Edge Cutout!";
-            log.innerText = "Processed successfully.";
-            bgBtn.disabled = false;
-        }, 1000);
+        status.innerText = "Error in AI processing.";
+        log.innerText = err.message;
+        bgBtn.disabled = false;
     }
 }
 
-// 3. Black & White Tool (100% Accurate)
+// 3. Black & White Tool
 window.applyBW = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
-        let avg = 0.3 * d[i] + 0.59 * d[i+1] + 0.11 * d[i+2]; // Standard luminance formula
+        let avg = 0.3 * d[i] + 0.59 * d[i+1] + 0.11 * d[i+2];
         d[i] = avg; d[i+1] = avg; d[i+2] = avg;
     }
     ctx.putImageData(imgData, 0, 0);
@@ -159,7 +131,7 @@ window.applyBW = function() {
     status.innerText = "Black & White filter applied!";
 }
 
-// 4. Compress Tool (100% Accurate Scale Down)
+// 4. Compress Tool
 window.applyCompress = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
@@ -174,7 +146,7 @@ window.applyCompress = function() {
     log.innerText = "New size: " + canvas.width + "x" + canvas.height;
 }
 
-// 5. Resize 500x500 Tool (100% Accurate)
+// 5. Resize 500x500 Tool
 window.applyResize500 = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
@@ -184,12 +156,11 @@ window.applyResize500 = function() {
     canvas.height = 500;
     ctx.drawImage(t, 0, 0);
     updateDownloadLink();
-    status.intent = "Resized";
     status.innerText = "Resized to exact 500x500 pixels!";
     log.innerText = "Dimensions: 500x500";
 }
 
-// 6. Brightness Tool (100% Accurate Enhancement)
+// 6. Brightness Tool
 window.applyBrightness = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -204,7 +175,7 @@ window.applyBrightness = function() {
     status.innerText = "Brightness increased successfully!";
 }
 
-// 7. Negative Tool (100% Accurate Inversion)
+// 7. Negative Tool
 window.applyNegative = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -219,7 +190,7 @@ window.applyNegative = function() {
     status.innerText = "Negative effect applied!";
 }
 
-// 8. Rotate 90° Tool (100% Accurate Rotation)
+// 8. Rotate 90° Tool
 window.applyRotate90 = function() {
     if (!imgLoaded) return alert("Please upload an image first!");
     let t = document.createElement('canvas');
